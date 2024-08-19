@@ -25,7 +25,7 @@ function Home() {
       <Faq />
       <Download />
       <Footer />
-      <div  style={{position: 'fixed', bottom: '30px'}}>
+      <div  style={{position: 'fixed', bottom: '30px', zIndex: '5'}}>
         <div >
           <div style={{ padding: '7px'}}>
             <a href="https://wa.me/9082091099">
