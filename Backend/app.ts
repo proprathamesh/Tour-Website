@@ -38,14 +38,18 @@ const startServer = async () => {
         await mongoose.connect(mongoUri);
         console.log('✅ MongoDB securely connected.');
 
-        // Start listening
-        app.listen(PORT, () => {
-            console.log(`🚀 Server is running live on http://localhost:${PORT}`);
-        });
+        // Only listen locally. Vercel handles this automatically in production.
+        if (process.env.NODE_ENV !== 'production') {
+            app.listen(PORT, () => {
+                console.log(`🚀 Server is running live on http://localhost:${PORT}`);
+            });
+        }
     } catch (error) {
         console.error('❌ Failed to start the server:', error);
-        process.exit(1);
     }
 };
 
 startServer();
+
+// CRITICAL FOR VERCEL: Export the Express app
+export default app;
