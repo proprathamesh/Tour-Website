@@ -56,9 +56,9 @@ export const requestOtpController = async (
             to: finalCleanNumber,
             type: 'template',
             template: {
-                name: "travels_otp", // Replace with the exact name from the dashboard
+                name: "YOUR_ACTUAL_TEMPLATE_NAME", 
                 language: {
-                    code: "en_US" // Or "en", depending on what you selected during creation
+                    code: "en_US" 
                 },
                 components: [
                     {
@@ -66,7 +66,11 @@ export const requestOtpController = async (
                         parameters: [
                             {
                                 type: "text",
-                                text: otpHash // Injects the 6-digit code into the message text
+                                text: otpHash // 👈 Fills {{1}} (Your 6-digit code)
+                            },
+                            {
+                                type: "text",
+                                text: "5" // 👈 Fills {{2}} (Try "5" for minutes, or your App Name if it fails)
                             }
                         ]
                     },
@@ -77,7 +81,7 @@ export const requestOtpController = async (
                         parameters: [
                             {
                                 type: "text",
-                                text: otpHash // Injects the 6-digit code into the Copy button
+                                text: otpHash // 👈 Fills the Copy Code button
                             }
                         ]
                     }
