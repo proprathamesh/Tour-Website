@@ -56,7 +56,7 @@ export const requestOtpController = async (
             to: finalCleanNumber,
             type: 'template',
             template: {
-                name: "YOUR_ACTUAL_TEMPLATE_NAME", 
+                name: "travels_otp", 
                 language: {
                     code: "en_US" 
                 },
