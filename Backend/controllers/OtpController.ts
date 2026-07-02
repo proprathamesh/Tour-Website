@@ -58,7 +58,7 @@ export const requestOtpController = async (
             template: {
                 name: "travels_otp", 
                 language: {
-                    code: "en_US" 
+                    code: "en" 
                 },
                 components: [
                     {
