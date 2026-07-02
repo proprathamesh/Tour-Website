@@ -67,10 +67,6 @@ export const requestOtpController = async (
                             {
                                 type: "text",
                                 text: plainOtp // 👈 Fills {{1}} (Your 6-digit code)
-                            },
-                            {
-                                type: "text",
-                                text: "5" // 👈 Fills {{2}} (Try "5" for minutes, or your App Name if it fails)
                             }
                         ]
                     },
