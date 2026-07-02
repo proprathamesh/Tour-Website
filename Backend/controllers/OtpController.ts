@@ -56,21 +56,29 @@ export const requestOtpController = async (
             to: finalCleanNumber,
             type: 'template',
             template: {
-                name: 'your_authentication_template_name', // Must match name in Meta Dashboard
-                language: { code: 'en' },
+                name: "travels_otp", // Replace with the exact name from the dashboard
+                language: {
+                    code: "en_US" // Or "en", depending on what you selected during creation
+                },
                 components: [
                     {
-                        type: 'body',
+                        type: "body",
                         parameters: [
-                            { type: 'text', text: plainOtp } // Inject OTP into your template text variable
+                            {
+                                type: "text",
+                                text: otpHash // Injects the 6-digit code into the message text
+                            }
                         ]
                     },
                     {
-                        type: 'button',
-                        sub_type: 'url',
-                        index: '0',
+                        type: "button",
+                        sub_type: "url",
+                        index: "0",
                         parameters: [
-                            { type: 'text', text: plainOtp } // Inject OTP into autofill/copy URL button parameters
+                            {
+                                type: "text",
+                                text: otpHash // Injects the 6-digit code into the Copy button
+                            }
                         ]
                     }
                 ]
