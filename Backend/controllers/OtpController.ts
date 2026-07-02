@@ -66,7 +66,7 @@ export const requestOtpController = async (
                         parameters: [
                             {
                                 type: "text",
-                                text: otpHash // 👈 Fills {{1}} (Your 6-digit code)
+                                text: plainOtp // 👈 Fills {{1}} (Your 6-digit code)
                             },
                             {
                                 type: "text",
@@ -81,7 +81,7 @@ export const requestOtpController = async (
                         parameters: [
                             {
                                 type: "text",
-                                text: otpHash // 👈 Fills the Copy Code button
+                                text: plainOtp // 👈 Fills the Copy Code button
                             }
                         ]
                     }
