@@ -89,7 +89,7 @@ export default function CheckoutModal({ visible, onClose }: CheckoutModalProps) 
             const cleanCountryCode = countryCode.replace('+', '');
             const fullPhoneNumber = `${cleanCountryCode}${phone}`;
 
-            const response = await fetch('http://localhost:3000/api/otp/verify', {
+            const response = await fetch('https://prathameshtoursandtravels.vercel.app/api/auth/verify-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phoneNumber: fullPhoneNumber, code: otpCode }),
