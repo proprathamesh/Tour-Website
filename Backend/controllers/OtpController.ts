@@ -33,10 +33,13 @@ export const requestOtpController = async (
     }
 
     const finalCleanNumber = phoneDetails.formattedNumber;
-
+    
     // 3. Generate the 6-Digit Code
     const plainOtp = generateNumericOtp();
     const otpHash = hashData(plainOtp);
+
+    // 2. Clear out any existing OTPs for this specific phone number
+    await Otp.deleteMany({ rawPhoneNumber });
 
     try {
         // 4. Save to MongoDB (TTL index handles the 5-minute auto-deletion automatically)

@@ -13,6 +13,8 @@ const PORT = process.env.PORT || 5000;
 // 1. Core Middleware
 app.use(express.json()); // Allows Express to parse incoming JSON payloads
 
+app.set('trust proxy', 1);
+
 // 2. Security Middleware: IP Rate Limiting for OTPs (Max 3 requests per 15 minutes)
 const otpLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, 

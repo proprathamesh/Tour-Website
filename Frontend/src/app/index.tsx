@@ -1,3 +1,4 @@
+import Head from 'expo-router/head';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -25,6 +26,12 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.heroContainer}>
+      {/* 🚀 SEO Metadata Injected Here 🚀 */}
+      <Head>
+        <title>Premium Cab Booking | Pune, Mumbai & Nashik | Prathamesh Tours</title>
+        <meta name="description" content="Book premium private cabs for one-way and round trips across Pune, Mumbai, and Nashik. Zero surge pricing, vetted drivers, and transparent fares." />
+      </Head>
+
       <View style={styles.heroTextContainer}>
         <h1 style={{ fontSize: 42, fontWeight: '800', color: '#1E293B', margin: 0 }}>
           Premium Private Cabs on the Pune - Mumbai - Nashik Belt
