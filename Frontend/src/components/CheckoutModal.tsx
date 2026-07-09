@@ -92,7 +92,7 @@ export default function CheckoutModal({ visible, onClose }: CheckoutModalProps) 
             const response = await fetch('https://prathameshtoursandtravels.vercel.app/api/auth/verify-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phoneNumber: fullPhoneNumber, code: otpCode }),
+                body: JSON.stringify({ rawPhoneNumber: fullPhoneNumber, submittedOtp: otpCode }),
             });
 
             const data = await response.json();
