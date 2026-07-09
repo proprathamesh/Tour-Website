@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import mongoose from 'mongoose';
 import rateLimit from 'express-rate-limit';
 import otpRoutes from './routes/OtpRoutes';
+import cors from 'cors';
 
 // Load environment variables (Ensure you have 'dotenv' installed: npm install dotenv)
 import dotenv from 'dotenv';
@@ -14,6 +15,7 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json()); // Allows Express to parse incoming JSON payloads
 
 app.set('trust proxy', 1);
+app.use(cors());
 
 // 2. Security Middleware: IP Rate Limiting for OTPs (Max 3 requests per 15 minutes)
 const otpLimiter = rateLimit({
