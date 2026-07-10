@@ -148,7 +148,12 @@ export default function QuotePage() {
             {/* 🚀 Injected Modal Component 🚀 */}
             <CheckoutModal 
                 visible={showBookingModal} 
-                onClose={() => setShowBookingModal(false)} 
+                onClose={() => setShowBookingModal(false)}
+                // 👇 Feed the required props into the modal
+                pickup={pickup as string}
+                drop={drop as string}
+                vehicleId={selectedVehicle as string}
+                price={activeVehicle?.oneWayPackage || 0}
             />
         </View>
     );

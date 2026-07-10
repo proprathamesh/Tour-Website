@@ -107,16 +107,32 @@ export const requestOtpController = async (
     }
 };
 
-interface VerifyOtpRequestBody {
+export interface VerifyOtpRequestBody {
     rawPhoneNumber: string;
     submittedOtp: string;
+    // Add the booking fields your frontend is sending
+    name: string;
+    pickup: string;
+    drop: string;
+    bookingDate: string;
+    vehicleId: string;
+    price: number | string;
 }
 
 export const verifyOtpController = async (
     req: Request<{}, {}, VerifyOtpRequestBody>,
     res: Response
 ): Promise<Response> => {
-    const { rawPhoneNumber, submittedOtp } = req.body;
+    const { 
+        rawPhoneNumber, 
+        submittedOtp, 
+        name, 
+        pickup, 
+        drop, 
+        bookingDate, 
+        vehicleId, 
+        price 
+    } = req.body;
 
     if (!rawPhoneNumber || !submittedOtp) {
         return res.status(400).json({ error: 'Missing phone number or verification code.' });
@@ -146,10 +162,26 @@ export const verifyOtpController = async (
         await Otp.deleteOne({ _id: record._id });
 
         // TODO: Generate and sign a JWT authentication token here for your user session management
+
+        const confirmedBooking = {
+            name,
+            phone: phoneDetails.formattedNumber,
+            pickup,
+            drop,
+            bookingDate,
+            vehicleId,
+            price
+        };
+
+        // 4. Fire the WhatsApp Alert
+        // Note: Because you are deploying to Vercel (Serverless), we MUST use 'await' here.
+        // If we don't await it, Vercel will kill the function the moment res.status(200) is sent, 
+        // and the WhatsApp message might get cancelled mid-flight.
+        await notifyAdmin(confirmedBooking);
         
         return res.status(200).json({
             success: true,
-            message: 'Identity authenticated successfully.'
+            message: 'Identity authenticated successfully. Driver will be assigned.'
         });
 
     } catch (error) {
