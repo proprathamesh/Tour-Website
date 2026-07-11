@@ -24,7 +24,7 @@ const notifyAdmin = async (bookingData: any) => {
                 to: adminNumber,
                 type: 'template',
                 template: {
-                    name: 'admin_new_booking_alert', 
+                    name: 'admin_alert', 
                     language: {
                         code: 'en'
                     },
