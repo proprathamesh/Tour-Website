@@ -4,11 +4,9 @@ import routeData from './routeData.json';
 // Explicit mapping ensures 100% accuracy from your UI dropdowns to your JSON slugs
 const normalizeLocation = (location: string): string => {
   switch (location) {
-    case 'Pune (City)': return 'pune';
-    case 'Mumbai (City)': return 'mumbai';
-    case 'Mumbai Airport (BOM)': return 'mumbai-bom';
+    case 'Pune': return 'pune';
+    case 'Mumbai': return 'mumbai';
     case 'Nashik': return 'nashik';
-    case 'Pune Airport (PNQ)': return 'pune-pnq';
     default:
       // Fallback regex to clean unexpected strings (e.g. "Mumbai" -> "mumbai")
       return location.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');

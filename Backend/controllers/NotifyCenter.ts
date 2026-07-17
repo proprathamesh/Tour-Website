@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 // Helper function to keep controllers clean
 const formatDateTime = (isoDateString: string) => {
@@ -12,7 +12,7 @@ const formatDateTime = (isoDateString: string) => {
 // ------------------------------------------------------------------
 // 1. ONE-WAY NOTIFICATION CONTROLLER
 // ------------------------------------------------------------------
-export const notifyAdminOneWay = async (req: Request, res: Response): Promise<Response | void> => {
+export const notifyCustomerOneWay = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
         const { name, rawPhoneNumber, pickup, drop, bookingDate, vehicleId, price } = req.body;
         const { formattedDate, formattedTime } = formatDateTime(bookingDate);
@@ -25,7 +25,7 @@ export const notifyAdminOneWay = async (req: Request, res: Response): Promise<Re
             },
             body: JSON.stringify({
                 messaging_product: 'whatsapp',
-                to: '918767370132',
+                to: rawPhoneNumber.replace('+', ''), // Meta requires numbers without the '+' symbol
                 type: 'template',
                 template: {
                     name: 'travels_customer_booking_confirmation_oneway',
@@ -33,7 +33,7 @@ export const notifyAdminOneWay = async (req: Request, res: Response): Promise<Re
                     components: [{
                         type: 'body',
                         parameters: [
-                            { type: 'text', text: `${name}, ${rawPhoneNumber}` },                  // {{1}}
+                            { type: 'text', text: name },                  // {{1}}
                             { type: 'text', text: pickup },                // {{2}}
                             { type: 'text', text: drop },                  // {{3}}
                             { type: 'text', text: formattedDate },         // {{4}}
@@ -48,7 +48,7 @@ export const notifyAdminOneWay = async (req: Request, res: Response): Promise<Re
 
         if (!response.ok) throw new Error(await response.text());
 
-        return res.status(200).json({ success: true, message: 'OTP Verified. One-Way booking confirmed!' });
+        next();
     } catch (error) {
         console.error('One-Way Notification Error:', error);
         return res.status(500).json({ success: false, message: 'Booking verified, but failed to send WhatsApp receipt.' });
@@ -58,7 +58,7 @@ export const notifyAdminOneWay = async (req: Request, res: Response): Promise<Re
 // ------------------------------------------------------------------
 // 2. ROUND-TRIP NOTIFICATION CONTROLLER
 // ------------------------------------------------------------------
-export const notifyAdminRoundTrip = async (req: Request, res: Response): Promise<Response | void> => {
+export const notifyCustomerRoundTrip = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
         // Includes the extra variables required for round trips
         const { name, rawPhoneNumber, pickup, drop, bookingDate, duration, vehicleId, kmLimit, baseFare, extraKmRate } = req.body;
@@ -72,7 +72,7 @@ export const notifyAdminRoundTrip = async (req: Request, res: Response): Promise
             },
             body: JSON.stringify({
                 messaging_product: 'whatsapp',
-                to: '918767370132',
+                to: rawPhoneNumber.replace('+', ''),
                 type: 'template',
                 template: {
                     name: 'travels_customer_booking_confirmation_round',
@@ -80,7 +80,7 @@ export const notifyAdminRoundTrip = async (req: Request, res: Response): Promise
                     components: [{
                         type: 'body',
                         parameters: [
-                            { type: 'text', text: `${name}, ${rawPhoneNumber}` },                  // {{1}}
+                            { type: 'text', text: name },                  // {{1}}
                             { type: 'text', text: pickup },                // {{2}}
                             { type: 'text', text: drop },                  // {{3}}
                             { type: 'text', text: formattedDate },         // {{4}}
@@ -98,7 +98,7 @@ export const notifyAdminRoundTrip = async (req: Request, res: Response): Promise
 
         if (!response.ok) throw new Error(await response.text());
 
-        return res.status(200).json({ success: true, message: 'OTP Verified. Round-Trip booking confirmed!' });
+        next()
     } catch (error) {
         console.error('Round-Trip Notification Error:', error);
         return res.status(500).json({ success: false, message: 'Booking verified, but failed to send WhatsApp receipt.' });
@@ -108,7 +108,7 @@ export const notifyAdminRoundTrip = async (req: Request, res: Response): Promise
 // ------------------------------------------------------------------
 // 3. LOCAL RENTAL NOTIFICATION CONTROLLER
 // ------------------------------------------------------------------
-export const notifyAdminLocal = async (req: Request, res: Response): Promise<Response | void> => {
+export const notifyCustomerLocal = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
         // Includes the extra variables for local packages
         const { name, rawPhoneNumber, city, packageType, bookingDate, vehicleId, baseFare, extraKmRate, extraHrRate } = req.body;
@@ -122,7 +122,7 @@ export const notifyAdminLocal = async (req: Request, res: Response): Promise<Res
             },
             body: JSON.stringify({
                 messaging_product: 'whatsapp',
-                to: '918767370132',
+                to: rawPhoneNumber.replace('+', ''),
                 type: 'template',
                 template: {
                     name: 'travels_customer_booking_confirmation_local',
@@ -130,7 +130,7 @@ export const notifyAdminLocal = async (req: Request, res: Response): Promise<Res
                     components: [{
                         type: 'body',
                         parameters: [
-                            { type: 'text', text: `${name}, ${rawPhoneNumber}` },                  // {{1}}
+                            { type: 'text', text: name },                  // {{1}}
                             { type: 'text', text: city },                  // {{2}}
                             { type: 'text', text: packageType },           // {{3}}
                             { type: 'text', text: formattedDate },         // {{4}}
@@ -147,7 +147,7 @@ export const notifyAdminLocal = async (req: Request, res: Response): Promise<Res
 
         if (!response.ok) throw new Error(await response.text());
 
-        return res.status(200).json({ success: true, message: 'OTP Verified. Local Rental booking confirmed!' });
+        next();
     } catch (error) {
         console.error('Local Notification Error:', error);
         return res.status(500).json({ success: false, message: 'Booking verified, but failed to send WhatsApp receipt.' });

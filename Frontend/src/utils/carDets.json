@@ -1,0 +1,187 @@
+[
+  {
+    "vehicleId": "v1_hatchback",
+    "name": "Hatchback (WagonR)",
+    "category": "hatchback",
+    "seats": 4,
+    "pricing": {
+      "roundTrip": {
+        "extraKmRate": 12
+      },
+      "local": {
+        "packages": [
+          {
+            "packageId": "8hrs-80kms",
+            "baseFare": 1600,
+            "extraKmRate": 10,
+            "extraHrRate": 100
+          },
+          {
+            "packageId": "10hrs-100kms",
+            "baseFare": 2000,
+            "extraKmRate": 10,
+            "extraHrRate": 100
+          },
+          {
+            "packageId": "12hrs-120kms",
+            "baseFare": 2400,
+            "extraKmRate": 10,
+            "extraHrRate": 100
+          }
+        ]
+      }
+    },
+    "metadata": {
+      "isActive": true,
+      "imageUrl": "https://your-storage.com/hatchback.png"
+    }
+  },
+  {
+    "vehicleId": "v2_sedan",
+    "name": "Sedan (Dzire, Aura)",
+    "category": "sedan",
+    "seats": 4,
+    "pricing": {
+      "roundTrip": {
+        "extraKmRate": 13
+      },
+      "local": {
+        "packages": [
+          {
+            "packageId": "8hrs-80kms",
+            "baseFare": 2000,
+            "extraKmRate": 12,
+            "extraHrRate": 150
+          },
+          {
+            "packageId": "10hrs-100kms",
+            "baseFare": 2400,
+            "extraKmRate": 12,
+            "extraHrRate": 150
+          },
+          {
+            "packageId": "12hrs-120kms",
+            "baseFare": 2800,
+            "extraKmRate": 12,
+            "extraHrRate": 150
+          }
+        ]
+      }
+    },
+    "metadata": {
+      "isActive": true,
+      "imageUrl": "https://your-storage.com/sedan.png"
+    }
+  },
+  {
+    "vehicleId": "v3_suv",
+    "name": "SUV (Rumion, Ertiga)",
+    "category": "suv",
+    "seats": 6,
+    "pricing": {
+      "roundTrip": {
+        "extraKmRate": 15
+      },
+      "local": {
+        "packages": [
+          {
+            "packageId": "8hrs-80kms",
+            "baseFare": 3000,
+            "extraKmRate": 15,
+            "extraHrRate": 200
+          },
+          {
+            "packageId": "10hrs-100kms",
+            "baseFare": 3500,
+            "extraKmRate": 15,
+            "extraHrRate": 200
+          },
+          {
+            "packageId": "12hrs-120kms",
+            "baseFare": 4000,
+            "extraKmRate": 15,
+            "extraHrRate": 200
+          }
+        ]
+      }
+    },
+    "metadata": {
+      "isActive": true,
+      "imageUrl": "https://your-storage.com/suv.png"
+    }
+  },
+  {
+    "vehicleId": "v4_comfort_suv",
+    "name": "Comfort SUV (Kia Carens)",
+    "category": "suv",
+    "seats": 6,
+    "pricing": {
+      "roundTrip": {
+        "extraKmRate": 17
+      },
+      "local": {
+        "packages": [
+          {
+            "packageId": "8hrs-80kms",
+            "baseFare": 3500,
+            "extraKmRate": 17,
+            "extraHrRate": 250
+          },
+          {
+            "packageId": "10hrs-100kms",
+            "baseFare": 4100,
+            "extraKmRate": 17,
+            "extraHrRate": 250
+          },
+          {
+            "packageId": "12hrs-120kms",
+            "baseFare": 4700,
+            "extraKmRate": 17,
+            "extraHrRate": 250
+          }
+        ]
+      }
+    },
+    "metadata": {
+      "isActive": true,
+      "imageUrl": "../../../assets/images/innova.png"
+    }
+  },
+  {
+    "vehicleId": "v5_premium_suv",
+    "name": "Premium SUV (Innova Crysta)",
+    "category": "suv",
+    "seats": "6+1/7+1",
+    "pricing": {
+      "roundTrip": {
+        "extraKmRate": 20
+      },
+      "local": {
+        "packages": [
+          {
+            "packageId": "8hrs-80kms",
+            "baseFare": 4000,
+            "extraKmRate": 20,
+            "extraHrRate": 300
+          },
+          {
+            "packageId": "10hrs-100kms",
+            "baseFare": 4800,
+            "extraKmRate": 20,
+            "extraHrRate": 300
+          },
+          {
+            "packageId": "12hrs-120kms",
+            "baseFare": 5600,
+            "extraKmRate": 20,
+            "extraHrRate": 300
+          }
+        ]
+      }
+    },
+    "metadata": {
+      "isActive": true,
+      "imageUrl": "https://imgs.search.brave.com/Ywpm4Aik38RQxXA-oKiABIDm_1icTXBqYBQhHCnhwWI/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzL2ZmL2E2/L2ZiL2ZmYTZmYjI2/MTZmZDYxMjAyODY3/Mjg1NjNhMWU0NjE5/LmpwZw"
+    }
+  }
+]

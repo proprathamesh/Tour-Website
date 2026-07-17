@@ -1,200 +1,344 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Head from 'expo-router/head';
-import { getQuoteData } from '../../utils/RouteParser';
-import CheckoutModal from '../../components/CheckoutModal'; // 👈 Import your new component here
+import { useLocalSearchParams, router } from 'expo-router';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Image, useWindowDimensions, Platform } from 'react-native';
 
-export default function QuotePage() {
-    const { pickup, drop, tripType } = useLocalSearchParams();
+import vehicleModelsData from '../../utils/carDets.json';
+import oneWayRoutesData from '../../utils/routeData.json';
+import { vehicleImages } from '../../utils/imageMap';
+import CheckoutModal from '@/components/CheckoutModal';
 
-    const [routeDetails, setRouteDetails] = useState<any>(null);
-    const [vehicles, setVehicles] = useState<any[]>([]);
-    const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
+export default function QuoteScreen() {
+    const { tripType, pickup, drop, startDate, package: localPackage } = useLocalSearchParams();
+    const { width } = useWindowDimensions();
+    const isMobile = width < 768;
 
-    // Only one state needed for the modal here
-    const [showBookingModal, setShowBookingModal] = useState(false);
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+    const [durationDays, setDurationDays] = useState<number>(1);
 
-    const VEHICLE_IMAGES: Record<string, any> = {
-        'hatchback': require('../../../assets/images/hatchback.png'),
-        'sedan': require('../../../assets/images/sedan.png'),
-        'suv': require('../../../assets/images/suv.png'),
-        'comfort-suv': require('../../../assets/images/carens.png'),
-        'premium-suv': require('../../../assets/images/crysta.jpg'),
+    let displayVehicles: any[] = [];
+    let routeDetails: any = null;
+
+    if (tripType === 'one-way') {
+        const routeKey = `${String(pickup).toLowerCase()}-to-${String(drop).toLowerCase().split(' ')[0]}`;
+        const routeData = (oneWayRoutesData as any)[routeKey];
+        if (routeData) {
+            displayVehicles = routeData.vehicles;
+            routeDetails = routeData.routeDetails;
+        }
+    } else {
+        displayVehicles = vehicleModelsData;
+    }
+
+    const handleBookNow = (vehicle: any) => {
+        setSelectedVehicle(vehicle);
+        setModalVisible(true);
     };
 
-    useEffect(() => {
-        if (!pickup || !drop) return;
+    const getBreakdown = (vehicle: any) => {
+        let price = '';
+        let priceLabel = '';
+        let included: string[] = [];
+        let excluded: string[] = [];
 
-        const result = getQuoteData(pickup as string, drop as string);
+        if (tripType === 'one-way') {
+            price = `₹${vehicle.oneWayPackage}`;
+            priceLabel = 'Fixed Fare';
+            included = ['Base Fare', `Approx. ${routeDetails?.distanceKm || '...'} km route`, 'Tolls & State Taxes'];
+            excluded = ['Parking', 'Multiple stops'];
+        }
+        else if (tripType === 'round-trip') {
+            const calculatedPrice = (vehicle.pricing.roundTrip.extraKmRate * 300 * durationDays) + (500 * durationDays);
+            price = `₹${calculatedPrice.toLocaleString('en-IN')}`;
+            priceLabel = 'Est. Base + Driver Allowance';
+            const totalKm = durationDays * 300;
 
-        if (!result.success || !result.data) {
-            setError(result.error || "Route not currently serviced");
-            return;
+            included = [`Base KM limit (${totalKm} km)`, 'Flexible routing', `Driver Allowance (₹${500 * durationDays})`];
+            excluded = ['Tolls & Parking', `Extra KM (after ${totalKm}km ₹${vehicle.pricing.roundTrip.extraKmRate}/km)`];
+        }
+        else if (tripType === 'local') {
+            const pkg = vehicle.pricing.local.packages.find((p: any) => p.packageId === localPackage);
+            if (pkg) {
+                price = `₹${pkg.baseFare}`;
+                priceLabel = 'Package Fare';
+                const formattedPkg = localPackage ? String(localPackage).replace('-', ' / ').replace('hrs', ' Hrs').replace('kms', ' Kms') : '';
+                included = ['Base Fare', formattedPkg];
+                excluded = [`Extra KM (₹${pkg.extraKmRate}/km)`, `Extra Hour (₹${pkg.extraHrRate}/hr)`, 'Tolls & Parking'];
+            }
         }
 
-        setRouteDetails(result.data.routeDetails);
-        setVehicles(result.data.vehicles);
+        return { price, priceLabel, included, excluded };
+    };
 
-        if (result.data.vehicles.length > 0) {
-            setSelectedVehicle(result.data.vehicles[0].id);
-        }
-    }, [pickup, drop]);
-
-    if (!routeDetails && !error) {
+    const renderHeader = () => {
+        const isLocal = tripType === 'local';
         return (
-            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color="#208AEF" />
-                <Text style={{ marginTop: 12, fontWeight: '500', color: '#64748B' }}>Calculating best routes...</Text>
+            <View style={styles.premiumHeader}>
+                <View style={styles.headerContent}>
+                    <Text style={[styles.headerTitle, isMobile && styles.headerTitleMobile]}>
+                        {isLocal ? `Local Rental in ${pickup}` : `${pickup} ➔ ${drop}`}
+                    </Text>
+                    <View style={styles.headerBadge}>
+                        <Text style={styles.headerBadgeText}>
+                            {isLocal
+                                ? `Package: ${String(localPackage).replace('-', ' / ')}`
+                                : tripType === 'round-trip' ? `Round Trip • Starts ${startDate}` : 'One-Way Drop'}
+                        </Text>
+                    </View>
+                </View>
             </View>
         );
-    }
-
-    if (error) {
-        return (
-            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
-                <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#EF4444', marginBottom: 16 }}>{error}</Text>
-                <Pressable style={styles.bookButton} onPress={() => router.back()}>
-                    <Text style={styles.bookButtonText}>← Go Back and Try Again</Text>
-                </Pressable>
-            </View>
-        );
-    }
-
-    const activeVehicle = vehicles.find(v => v.id === selectedVehicle);
+    };
 
     return (
-        <View style={{ flex: 1 }}>
-            <Head>
-                <title>Select Vehicle | Prathamesh Tours</title>
-                <meta name="robots" content="noindex" /> 
-            </Head>
+        <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            <Pressable onPress={() => router.back()} style={styles.backButton}>
+                <Text style={styles.backText}>← Modify Search</Text>
+            </Pressable>
 
-            <ScrollView style={styles.container}>
-                {/* Route Header */}
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Your Private Ride Details</Text>
-                    <View style={styles.routePill}>
-                        <Text style={styles.routeText}>{tripType?.toString().toUpperCase()}: {pickup} → {drop}</Text>
+            {renderHeader()}
+
+            {tripType === 'round-trip' && (
+                <View style={styles.durationCard}>
+                    <View style={styles.durationInfo}>
+                        <Text style={styles.durationLabel}>Trip Duration</Text>
+                        <Text style={styles.durationSubtext}>Impacts driver allowance & base KM</Text>
                     </View>
-                    <Text style={styles.estimatedTime}>
-                        Approx. {routeDetails.distanceKm} km | {routeDetails.estimatedTimeHours} Hours via Expressway
-                    </Text>
+                    <View style={styles.durationControls}>
+                        <Pressable style={styles.durationBtn} onPress={() => setDurationDays(prev => Math.max(1, prev - 1))}>
+                            <Text style={styles.durationBtnText}>−</Text>
+                        </Pressable>
+                        <View style={styles.durationValueContainer}>
+                            <Text style={styles.durationValue}>{durationDays}</Text>
+                            <Text style={styles.durationUnit}>{durationDays === 1 ? 'Day' : 'Days'}</Text>
+                        </View>
+                        <Pressable style={styles.durationBtn} onPress={() => setDurationDays(prev => prev + 1)}>
+                            <Text style={styles.durationBtnText}>+</Text>
+                        </Pressable>
+                    </View>
                 </View>
+            )}
 
-                <View style={styles.contentLayout}>
-                    {/* Left Column: Vehicle Cards */}
-                    <View style={styles.vehicleList}>
-                        <Text style={styles.sectionTitle}>Select Your Vehicle</Text>
+            {tripType === 'one-way' && displayVehicles.length === 0 && (
+                <View style={styles.errorBox}>
+                    <Text style={styles.errorText}>Sorry, we don't currently offer one-way routes from {pickup} to {drop}.</Text>
+                </View>
+            )}
 
-                        {vehicles.map((vehicle) => {
-                            const isSelected = selectedVehicle === vehicle.id;
-                            return (
-                                <Pressable
-                                    key={vehicle.id}
-                                    style={[styles.vehicleCard, isSelected && styles.activeVehicleCard]}
-                                    onPress={() => setSelectedVehicle(vehicle.id)}
-                                >
-                                    {isSelected && <View style={styles.activeAccentBar} />}
-                                    <View style={styles.imageFrame}>
-                                        <Image source={VEHICLE_IMAGES[vehicle.id]} style={styles.carIcon} resizeMode="contain" />
+            {displayVehicles.map((vehicle, index) => {
+                const uniqueKey = vehicle.id || vehicle.vehicleId || index;
+                const breakdown = getBreakdown(vehicle);
+
+                return (
+                    <View key={uniqueKey} style={styles.premiumCard}>
+
+                        {/* 🚀 RESPONSIVE HEADER: Stacks on mobile, row on desktop */}
+                        <View style={[styles.cardHeaderTop, isMobile && styles.cardHeaderTopMobile]}>
+
+                            <View style={[styles.vehicleInfoArea, isMobile && styles.vehicleInfoAreaMobile]}>
+                                <Text style={[styles.vehicleNameText, isMobile && styles.vehicleNameTextMobile]}>
+                                    {vehicle.name || vehicle.models}
+                                </Text>
+                                <View style={[styles.tagsContainer, isMobile && styles.tagsContainerMobile]}>
+                                    <View style={styles.tagPill}>
+                                        <Text style={styles.tagText}>{vehicle.seats} Seater</Text>
                                     </View>
-                                    <View style={styles.vehicleDetails}>
-                                        <Text style={styles.vehicleName}>{vehicle.name}</Text>
-                                        <Text style={styles.vehicleModels} numberOfLines={1}>{vehicle.models}</Text>
-                                        <View style={styles.metaRow}>
-                                            <Text style={styles.capacityText}>👨‍👩‍👧‍👦 {vehicle.seats} Seats</Text>
-                                            <Text style={styles.bulletDivider}>•</Text>
-                                            <Text style={styles.baggageText}>💼 Max Bags</Text>
+                                    {vehicle.fuel && (
+                                        <View style={[styles.tagPill, styles.fuelPill]}>
+                                            <Text style={[styles.tagText, styles.fuelText]}>{vehicle.fuel}</Text>
                                         </View>
-                                    </View>
-                                    <View style={[styles.priceContainer, isSelected && styles.activePriceContainer]}>
-                                        <Text style={[styles.startingPrice, isSelected && styles.activePriceText]}>₹{vehicle.oneWayPackage}</Text>
-                                        <Text style={styles.baseLabel}>All-Inclusive</Text>
-                                    </View>
-                                </Pressable>
-                            );
-                        })}
-                    </View>
-
-                    {/* Right Column: The Receipt */}
-                    <View style={styles.summaryPanel}>
-                        <Text style={styles.sectionTitle}>Fare Summary</Text>
-                        <View style={styles.breakdownCard}>
-                            <Text style={styles.packageTotalLabel}>Total Package Price</Text>
-                            <Text style={styles.packageTotalValue}>₹{activeVehicle?.oneWayPackage}</Text>
-                            <View style={styles.divider} />
-                            <Text style={styles.listHeadingText}>📦 What's Included:</Text>
-                            <Text style={styles.listItem}>✓ Fuel Charges & Driver Night Bata</Text>
-                            <Text style={styles.listItem}>✓ All Expressway & State Toll Taxes</Text>
-                            <Text style={styles.listItem}>✓ Drop straight to your exact address</Text>
-
-                            <Text style={[styles.listHeadingText, { marginTop: 16 }]}>❌ What's Not Included:</Text>
-                            <Text style={styles.listItem}>• Multiple drops or deviations</Text>
-
-                            <View style={styles.guaranteeBox}>
-                                <Text style={styles.guaranteeText}>✅ Locked Fares. No End-of-Trip Surprises.</Text>
+                                    )}
+                                </View>
                             </View>
 
-                            <Pressable style={styles.bookButton} onPress={() => setShowBookingModal(true)}>
-                                <Text style={styles.bookButtonText}>Confirm & Book Ride</Text>
+                            {vehicleImages[vehicle.vehicleId] && (
+                                <View style={[styles.imageContainer, isMobile && styles.imageContainerMobile]}>
+                                    <Image
+                                        source={vehicleImages[vehicle.vehicleId]}
+                                        style={styles.vehicleImageRender}
+                                        resizeMode="contain"
+                                    />
+                                </View>
+                            )}
+                        </View>
+
+                        <View style={[styles.splitArea, isMobile && styles.splitAreaMobile]}>
+
+                            <View style={[styles.priceShowcase, isMobile && styles.priceShowcaseMobile]}>
+                                <Text style={styles.priceAmountText}>{breakdown.price}</Text>
+                                <Text style={styles.priceContextText}>{breakdown.priceLabel}</Text>
+                            </View>
+
+                            <View style={[styles.detailsSection, isMobile && styles.detailsSectionMobile]}>
+
+                                {/* Upgraded Included Box */}
+                                <View style={styles.featureBox}>
+                                    <View style={styles.featureHeader}>
+                                        <View style={[styles.iconBadge, styles.badgeGreen]}>
+                                            <Text style={styles.iconGreen}>✓</Text>
+                                        </View>
+                                        <Text style={styles.headingDark}>What's Included</Text>
+                                    </View>
+                                    <View style={styles.featureList}>
+                                        {breakdown.included.map((item, i) => (
+                                            <View key={`inc-${i}`} style={styles.listItemRow}>
+                                                <Text style={styles.bulletCheck}>✓</Text>
+                                                <Text style={styles.bulletItemText}>{item}</Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                </View>
+
+                                {/* Upgraded Not Included Box */}
+                                <View style={styles.featureBox}>
+                                    <View style={styles.featureHeader}>
+                                        <View style={[styles.iconBadge, styles.badgeRed]}>
+                                            <Text style={styles.iconRed}>✕</Text>
+                                        </View>
+                                        <Text style={styles.headingDark}>Not Included</Text>
+                                    </View>
+                                    <View style={styles.featureList}>
+                                        {breakdown.excluded.map((item, i) => (
+                                            <View key={`exc-${i}`} style={styles.listItemRow}>
+                                                <Text style={styles.bulletCross}>✕</Text>
+                                                <Text style={styles.bulletItemText}>{item}</Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                </View>
+
+                            </View>
+
+                        </View>
+
+                        <View style={styles.cardActionFooter}>
+                            <Pressable style={styles.primaryBookBtn} onPress={() => handleBookNow(vehicle)}>
+                                <Text style={styles.primaryBookBtnText}>Select & Proceed</Text>
                             </Pressable>
                         </View>
                     </View>
-                </View>
-            </ScrollView>
+                );
+            })}
 
-            {/* 🚀 Injected Modal Component 🚀 */}
-            <CheckoutModal 
-                visible={showBookingModal} 
-                onClose={() => setShowBookingModal(false)}
-                // 👇 Feed the required props into the modal
-                pickup={pickup as string}
-                drop={drop as string}
-                vehicleId={selectedVehicle as string}
-                price={activeVehicle?.oneWayPackage || 0}
-            />
-        </View>
+            {selectedVehicle && (
+                <CheckoutModal
+                    visible={isModalVisible}
+                    onClose={() => setModalVisible(false)}
+                    tripType={tripType as string}
+                    pickup={pickup as string}
+                    drop={drop as string}
+                    bookingDate={startDate as string}
+                    vehicleId={selectedVehicle.name || selectedVehicle.models}
+
+                    // Dynamic Pricing Props based on what you calculated in getBreakdown
+                    finalPrice={
+                        tripType === 'one-way' ? selectedVehicle.oneWayPackage :
+                            tripType === 'round-trip' ? (selectedVehicle.pricing.roundTrip.extraKmRate * 300 * durationDays) + (500 * durationDays) :
+                                selectedVehicle.pricing.local.packages.find((p: any) => p.packageId === localPackage)?.baseFare
+                    }
+                    duration={durationDays}
+                    packageType={localPackage as string}
+                    extraKmRate={
+                        tripType === 'round-trip' ? selectedVehicle.pricing.roundTrip.extraKmRate :
+                            tripType === 'local' ? selectedVehicle.pricing.local.packages.find((p: any) => p.packageId === localPackage)?.extraKmRate : 0
+                    }
+                />
+            )}
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F8FAFC' },
-    header: { padding: 32, backgroundColor: '#FFFFFF', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
-    headerTitle: { fontSize: 28, fontWeight: '700', color: '#1E293B', marginBottom: 12 },
-    routePill: { backgroundColor: '#EFF6FF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginBottom: 8 },
-    routeText: { color: '#2563EB', fontWeight: '600', fontSize: 14 },
-    estimatedTime: { color: '#64748B', fontSize: 14 },
-    contentLayout: { flexDirection: 'row', flexWrap: 'wrap', padding: 24, gap: 24, maxWidth: 1200, alignSelf: 'center', width: '100%' },
-    vehicleList: { flex: 2, minWidth: 350 },
-    sectionTitle: { fontSize: 20, fontWeight: '600', color: '#1E293B', marginBottom: 16 },
-    vehicleCard: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 14, paddingVertical: 12, paddingHorizontal: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E2E8F0', position: 'relative', overflow: 'hidden', alignItems: 'center', shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 },
-    activeVehicleCard: { borderColor: '#208AEF', borderWidth: 2, shadowOpacity: 0.08, shadowRadius: 12 },
-    activeAccentBar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5, backgroundColor: '#208AEF' },
-    imageFrame: { width: 150, height: 90, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', marginRight: 16 },
-    carIcon: { width: '100%', height: '100%' },
-    vehicleDetails: { flex: 1, justifyContent: 'center', paddingRight: 8 },
-    vehicleName: { fontSize: 18, fontWeight: '700', color: '#0F172A', marginBottom: 2 },
-    vehicleModels: { fontSize: 13, color: '#64748B', marginBottom: 6 },
-    metaRow: { flexDirection: 'row', alignItems: 'center' },
-    capacityText: { fontSize: 12, color: '#475569', fontWeight: '600' },
-    bulletDivider: { marginHorizontal: 6, color: '#94A3B8', fontSize: 12 },
-    baggageText: { fontSize: 12, color: '#64748B' },
-    priceContainer: { justifyContent: 'center', alignItems: 'flex-end', paddingLeft: 12, borderLeftWidth: 1, borderLeftColor: '#F1F5F9', height: '70%' },
-    activePriceContainer: { borderLeftColor: '#E0F2FE' },
-    startingPrice: { fontSize: 22, fontWeight: '800', color: '#334155' },
-    activePriceText: { color: '#208AEF' },
-    baseLabel: { fontSize: 11, color: '#94A3B8', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
-    summaryPanel: { flex: 1, minWidth: 300 },
-    breakdownCard: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-    divider: { height: 1, backgroundColor: '#E2E8F0', marginVertical: 16 },
-    packageTotalLabel: { color: '#64748B', fontSize: 14, fontWeight: '600' },
-    packageTotalValue: { color: '#1E293B', fontSize: 32, fontWeight: '800', marginVertical: 4 },
-    listHeadingText: { fontSize: 15, fontWeight: '700', color: '#1E293B', marginBottom: 8 },
-    listItem: { fontSize: 14, color: '#475569', marginBottom: 6, paddingLeft: 4 },
-    guaranteeBox: { backgroundColor: '#DCFCE7', padding: 12, borderRadius: 6, marginTop: 20, alignItems: 'center' },
-    guaranteeText: { color: '#166534', fontWeight: '600', fontSize: 13 },
-    bookButton: { backgroundColor: '#208AEF', paddingVertical: 16, borderRadius: 8, marginTop: 20, alignItems: 'center' },
-    bookButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+    // ... keep your existing styles above ...
+
+    detailsSection: { flex: 1.5, flexDirection: 'row', gap: 16 },
+    detailsSectionMobile: { flexDirection: 'column', gap: 16 },
+
+    // 🚀 UPGRADED: Clean, White Feature Boxes instead of heavy colored blocks
+    featureBox: { flex: 1, backgroundColor: '#FFFFFF', padding: 20, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0' },
+
+    // Sleek Headers with Icon Badges
+    featureHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', gap: 10 },
+    iconBadge: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+    badgeGreen: { backgroundColor: '#DCFCE7' },
+    badgeRed: { backgroundColor: '#FEE2E2' },
+    iconGreen: { color: '#16A34A', fontWeight: '900', fontSize: 14 },
+    iconRed: { color: '#DC2626', fontWeight: '900', fontSize: 14 },
+    headingDark: { color: '#0F172A', fontWeight: '800', fontSize: 16, letterSpacing: -0.2 },
+
+    // Properly aligned bullet lists (prevents text wrapping under the bullet)
+    featureList: { gap: 12 },
+    listItemRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+    bulletCheck: { color: '#10B981', fontSize: 14, fontWeight: 'bold', marginTop: 2 },
+    bulletCross: { color: '#EF4444', fontSize: 14, fontWeight: 'bold', marginTop: 2 },
+    bulletItemText: { fontSize: 14, color: '#475569', flex: 1, lineHeight: 20, fontWeight: '500' },
+
+    container: { flex: 1, backgroundColor: '#F0F4F8' },
+    content: { padding: 20, maxWidth: 850, alignSelf: 'center', width: '100%', paddingBottom: 60 },
+    backButton: { marginBottom: 16, alignSelf: 'flex-start' },
+    backText: { color: '#3B82F6', fontSize: 15, fontWeight: '600' },
+
+    premiumHeader: { backgroundColor: '#0F172A', borderRadius: 16, overflow: 'hidden', marginBottom: 24, ...Platform.select({ web: { boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)' } }) },
+    headerContent: { padding: 24, alignItems: 'flex-start' },
+    headerTitle: { color: '#FFFFFF', fontSize: 28, fontWeight: '800', letterSpacing: -0.5, marginBottom: 12 },
+    headerTitleMobile: { fontSize: 24 }, // Slightly smaller font for mobile header
+    headerBadge: { backgroundColor: 'rgba(255, 255, 255, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.15)' },
+    headerBadgeText: { color: '#E2E8F0', fontSize: 14, fontWeight: '600' },
+
+    durationCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFFFFF', padding: 20, borderRadius: 16, marginBottom: 24, borderWidth: 1, borderColor: '#E2E8F0' },
+    durationInfo: { flex: 1 },
+    durationLabel: { fontSize: 18, fontWeight: '700', color: '#1E293B', marginBottom: 4 },
+    durationSubtext: { fontSize: 13, color: '#64748B' },
+    durationControls: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', padding: 4 },
+    durationBtn: { paddingHorizontal: 18, paddingVertical: 12, backgroundColor: '#FFFFFF', borderRadius: 8 },
+    durationBtnText: { fontSize: 20, fontWeight: 'bold', color: '#0F172A', lineHeight: 22 },
+    durationValueContainer: { alignItems: 'center', justifyContent: 'center', minWidth: 70 },
+    durationValue: { fontSize: 20, fontWeight: '800', color: '#0F172A' },
+    durationUnit: { fontSize: 11, color: '#64748B', fontWeight: '600', textTransform: 'uppercase' },
+
+    errorBox: { backgroundColor: '#FEF2F2', padding: 20, borderRadius: 12, borderWidth: 1, borderColor: '#FECACA' },
+    errorText: { color: '#B91C1C', textAlign: 'center', fontWeight: '600', fontSize: 15 },
+
+    premiumCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 24, marginBottom: 28, borderWidth: 1, borderColor: '#E2E8F0', ...Platform.select({ web: { boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)' } }) },
+
+    // 🚀 RESPONSIVE HEADER STYLES
+    cardHeaderTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#F1F5F9', paddingBottom: 24, marginBottom: 20 },
+    cardHeaderTopMobile: { flexDirection: 'column-reverse', gap: 16 }, // column-reverse puts the image visually ON TOP of the text
+
+    vehicleInfoArea: { flex: 1, paddingRight: 10 },
+    vehicleInfoAreaMobile: { paddingRight: 0, alignItems: 'center', width: '100%' },
+
+    vehicleNameText: { fontSize: 22, fontWeight: '800', color: '#0F172A', marginBottom: 10, letterSpacing: -0.3 },
+    vehicleNameTextMobile: { textAlign: 'center' },
+
+    tagsContainer: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+    tagsContainerMobile: { justifyContent: 'center' },
+
+    tagPill: { backgroundColor: '#F1F5F9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+    tagText: { fontSize: 13, color: '#475569', fontWeight: '600' },
+    fuelPill: { backgroundColor: '#ECFDF5' },
+    fuelText: { color: '#059669' },
+
+    // Desktop keeps it right-aligned, Mobile makes it centered and massive
+    imageContainer: { width: 200, height: 110, justifyContent: 'center', alignItems: 'flex-end' },
+    imageContainerMobile: { width: '100%', height: 140, alignItems: 'center' },
+    vehicleImageRender: { width: '100%', height: '100%' },
+
+    splitArea: { flexDirection: 'row', gap: 24 },
+    splitAreaMobile: { flexDirection: 'column', gap: 20 },
+
+    priceShowcase: { flex: 1, justifyContent: 'center', alignItems: 'flex-start', backgroundColor: '#F8FAFC', borderRadius: 16, padding: 24, borderWidth: 1, borderColor: '#E2E8F0' },
+    priceShowcaseMobile: { alignItems: 'center', padding: 20 },
+    priceAmountText: { fontSize: 36, fontWeight: '900', color: '#0F172A', marginBottom: 6, letterSpacing: -1 },
+    priceContextText: { fontSize: 13, color: '#64748B', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
+
+    inclusionList: { flex: 1, backgroundColor: '#F0FDF4', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#DCFCE7' },
+    exclusionList: { flex: 1, backgroundColor: '#FEF2F2', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#FEE2E2' },
+    listHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 6 },
+    headingGreen: { color: '#166534', fontWeight: '800', fontSize: 15 },
+    headingRed: { color: '#991B1B', fontWeight: '800', fontSize: 15 },
+
+    cardActionFooter: { marginTop: 24, paddingTop: 20, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
+    primaryBookBtn: { backgroundColor: '#2563EB', paddingVertical: 16, borderRadius: 12, alignItems: 'center' },
+    primaryBookBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 17, letterSpacing: 0.3 },
 });

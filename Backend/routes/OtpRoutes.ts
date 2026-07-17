@@ -7,7 +7,7 @@ const router = Router();
 router.post('/request-otp', requestOtpController);
 
 // POST route to verify the submitted OTP
-router.post('/verify-otp', verifyOtpController);
+// router.post('/verify-otp', verifyOtpController);
 
 // GET route for Meta's initial webhook verification handshake
 router.get('/webhook', verifyWebhookController);

@@ -6,6 +6,7 @@ import cors from 'cors';
 
 // Load environment variables (Ensure you have 'dotenv' installed: npm install dotenv)
 import dotenv from 'dotenv';
+import NotifyRoutes from './routes/NotifyRoutes';
 dotenv.config();
 
 const app: Application = express();
@@ -28,12 +29,15 @@ const otpLimiter = rateLimit({
 
 // 3. Mount Routes
 // Apply the rate limiter strictly to the OTP routes to prevent API budget draining
-app.use('/api/auth', otpLimiter, otpRoutes);
+// app.use('/api/auth', otpLimiter, otpRoutes);
+app.use('/api/auth', otpRoutes);
+app.use('/api/notify', NotifyRoutes);
 
 // 4. Database Connection & Server Initialization
 const startServer = async () => {
     try {
         const mongoUri = process.env.MONGODB_URI;
+        console.log("LOCAL MONGODB STRING:", mongoUri);
         if (!mongoUri) {
             throw new Error('MONGODB_URI is missing in your .env file');
         }
