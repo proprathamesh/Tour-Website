@@ -227,7 +227,6 @@ export default function QuoteScreen() {
                     tripType={tripType as string}
                     pickup={pickup as string}
                     drop={drop as string}
-                    bookingDate={startDate as string}
                     vehicleId={selectedVehicle.name || selectedVehicle.models}
 
                     // Dynamic Pricing Props based on what you calculated in getBreakdown

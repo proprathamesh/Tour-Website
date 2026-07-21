@@ -14,8 +14,8 @@ const formatDateTime = (isoDateString: string) => {
 // ------------------------------------------------------------------
 export const notifyAdminOneWay = async (req: Request, res: Response): Promise<Response | void> => {
     try {
-        const { name, rawPhoneNumber, pickup, drop, bookingDate, vehicleId, price } = req.body;
-        const { formattedDate, formattedTime } = formatDateTime(bookingDate);
+        const { name, rawPhoneNumber, pickup, drop, bookingDate, pickupTime, vehicleId, price } = req.body;
+        // const { formattedDate, formattedTime } = formatDateTime(bookingDate);
 
         const response = await fetch(`https://graph.facebook.com/v17.0/${process.env.WHATSAPP_PHONE_ID}/messages`, {
             method: 'POST',
@@ -36,8 +36,8 @@ export const notifyAdminOneWay = async (req: Request, res: Response): Promise<Re
                             { type: 'text', text: `${name}, ${rawPhoneNumber}` },                  // {{1}}
                             { type: 'text', text: pickup },                // {{2}}
                             { type: 'text', text: drop },                  // {{3}}
-                            { type: 'text', text: formattedDate },         // {{4}}
-                            { type: 'text', text: formattedTime },         // {{5}}
+                            { type: 'text', text: bookingDate },         // {{4}}
+                            { type: 'text', text: pickupTime },         // {{5}}
                             { type: 'text', text: vehicleId },             // {{6}}
                             { type: 'text', text: String(price) }          // {{7}}
                         ]
@@ -61,8 +61,8 @@ export const notifyAdminOneWay = async (req: Request, res: Response): Promise<Re
 export const notifyAdminRoundTrip = async (req: Request, res: Response): Promise<Response | void> => {
     try {
         // Includes the extra variables required for round trips
-        const { name, rawPhoneNumber, pickup, drop, bookingDate, duration, vehicleId, kmLimit, baseFare, extraKmRate } = req.body;
-        const { formattedDate, formattedTime } = formatDateTime(bookingDate);
+        const { name, rawPhoneNumber, pickup, drop, bookingDate, pickupTime, duration, vehicleId, kmLimit, baseFare, extraKmRate } = req.body;
+        // const { formattedDate, formattedTime } = formatDateTime(bookingDate);
 
         const response = await fetch(`https://graph.facebook.com/v17.0/${process.env.WHATSAPP_PHONE_ID}/messages`, {
             method: 'POST',
@@ -83,8 +83,8 @@ export const notifyAdminRoundTrip = async (req: Request, res: Response): Promise
                             { type: 'text', text: `${name}, ${rawPhoneNumber}` },                  // {{1}}
                             { type: 'text', text: pickup },                // {{2}}
                             { type: 'text', text: drop },                  // {{3}}
-                            { type: 'text', text: formattedDate },         // {{4}}
-                            { type: 'text', text: formattedTime },         // {{5}}
+                            { type: 'text', text: bookingDate },         // {{4}}
+                            { type: 'text', text: pickupTime },         // {{5}}
                             { type: 'text', text: String(duration) },      // {{6}}
                             { type: 'text', text: vehicleId },             // {{7}}
                             { type: 'text', text: String(kmLimit) },       // {{8}}
@@ -111,8 +111,8 @@ export const notifyAdminRoundTrip = async (req: Request, res: Response): Promise
 export const notifyAdminLocal = async (req: Request, res: Response): Promise<Response | void> => {
     try {
         // Includes the extra variables for local packages
-        const { name, rawPhoneNumber, city, packageType, bookingDate, vehicleId, baseFare, extraKmRate, extraHrRate } = req.body;
-        const { formattedDate, formattedTime } = formatDateTime(bookingDate);
+        const { name, rawPhoneNumber, city, packageType, bookingDate, pickupTime, vehicleId, baseFare, extraKmRate, extraHrRate } = req.body;
+        // const { formattedDate, formattedTime } = formatDateTime(bookingDate);
 
         const response = await fetch(`https://graph.facebook.com/v17.0/${process.env.WHATSAPP_PHONE_ID}/messages`, {
             method: 'POST',
@@ -133,8 +133,8 @@ export const notifyAdminLocal = async (req: Request, res: Response): Promise<Res
                             { type: 'text', text: `${name}, ${rawPhoneNumber}` },                  // {{1}}
                             { type: 'text', text: city },                  // {{2}}
                             { type: 'text', text: packageType },           // {{3}}
-                            { type: 'text', text: formattedDate },         // {{4}}
-                            { type: 'text', text: formattedTime },         // {{5}}
+                            { type: 'text', text: bookingDate },         // {{4}}
+                            { type: 'text', text: pickupTime },         // {{5}}
                             { type: 'text', text: vehicleId },             // {{6}}
                             { type: 'text', text: String(baseFare) },      // {{7}}
                             { type: 'text', text: String(extraKmRate) },   // {{8}}

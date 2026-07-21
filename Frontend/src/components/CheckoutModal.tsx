@@ -1,17 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, Pressable, ActivityIndicator, Alert, Platform, KeyboardAvoidingView, ScrollView, FlatList, Animated } from 'react-native';
+import React, { useState, useEffect, createElement } from 'react';
+import { View, Text, StyleSheet, Modal, TextInput, Pressable, ActivityIndicator, Platform, KeyboardAvoidingView, ScrollView, FlatList, Animated } from 'react-native';
 
 interface CheckoutModalProps {
     visible: boolean;
     onClose: () => void;
-    
     tripType: 'one-way' | 'round-trip' | 'local' | string;
     pickup: string;
     drop: string;
     vehicleId: string;
     finalPrice: number | string;
-    
-    bookingDate?: string;
     duration?: number;
     packageType?: string;
     extraKmRate?: number;
@@ -22,21 +19,53 @@ const countryList = [
     { name: 'US / Canada', code: '+1', flag: '🇺🇸' },
     { name: 'UK', code: '+44', flag: '🇬🇧' },
     { name: 'UAE', code: '+971', flag: '🇦🇪' },
-    { name: 'Australia', code: '+61', flag: '🇦🇺' },
-    { name: 'Singapore', code: '+65', flag: '🇸🇬' },
-    { name: 'Germany', code: '+49', flag: '🇩🇪' },
 ];
 
+// 🚀 Helpers to convert raw HTML formats into readable formats for the UI & WhatsApp
+const formatDisplayDate = (dateStr: string) => {
+    if (!dateStr) return 'Select Date';
+    const [y, m, d] = dateStr.split('-');
+    return `${d}/${m}/${y}`;
+};
+
+const formatDisplayTime = (timeStr: string) => {
+    if (!timeStr) return 'Select Time';
+    let [h, min] = timeStr.split(':');
+    let hour = parseInt(h, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12 || 12;
+    return `${hour}:${min} ${ampm}`;
+};
+
+// 🚀 NEW: Helpers for blocking past dates & times
+const getTodayDateString = () => {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`; // Format: YYYY-MM-DD
+};
+
+const getCurrentTimeString = () => {
+    const today = new Date();
+    const h = String(today.getHours()).padStart(2, '0');
+    const m = String(today.getMinutes()).padStart(2, '0');
+    return `${h}:${m}`; // Format: HH:mm
+};
+
 export default function CheckoutModal(props: CheckoutModalProps) {
+    const [pickupDate, setPickupDate] = useState(''); 
+    const [pickupTime, setPickupTime] = useState(''); 
+
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [countryCode, setCountryCode] = useState('+91');
     const [otp, setOtp] = useState('');
     const [step, setStep] = useState<'details' | 'otp' | 'success'>('details');
     const [isLoading, setIsLoading] = useState(false);
-    
-    const [errors, setErrors] = useState({ name: '', phone: '', otp: '', general: '' });
-    
+    const [errors, setErrors] = useState({ date: '', time: '', name: '', phone: '', otp: '', general: '' });
+    const [isDateFocused, setIsDateFocused] = useState(false);
+    const [isTimeFocused, setIsTimeFocused] = useState(false);
     const [isNameFocused, setIsNameFocused] = useState(false);
     const [isPhoneFocused, setIsPhoneFocused] = useState(false);
     const [showCountryPicker, setShowCountryPicker] = useState(false);
@@ -56,26 +85,41 @@ export default function CheckoutModal(props: CheckoutModalProps) {
                     props.onClose();
                     setStep('details');
                     setOtp('');
-                    setErrors({ name: '', phone: '', otp: '', general: '' });
+                    setPickupDate('');
+                    setPickupTime('');
+                    setName('');
+                    setPhone('');
+                    setErrors({ date: '', time: '', name: '', phone: '', otp: '', general: '' });
                 }, 2500);
             });
         }
     }, [step]);
 
     const handleRequestOtp = async () => {
-        setErrors({ name: '', phone: '', otp: '', general: '' });
+        setErrors({ date: '', time: '', name: '', phone: '', otp: '', general: '' });
         let hasError = false;
+        const newErrors = { date: '', time: '', name: '', phone: '', otp: '', general: '' };
 
-        if (!name.trim()) {
-            setErrors(prev => ({ ...prev, name: 'Passenger name is required' }));
-            hasError = true;
-        }
-        if (phone.length < 8) {
-            setErrors(prev => ({ ...prev, phone: 'Enter a valid phone number' }));
-            hasError = true;
+        if (!pickupDate) { newErrors.date = 'Date required'; hasError = true; }
+        if (!pickupTime) { newErrors.time = 'Time required'; hasError = true; }
+        if (!name.trim()) { newErrors.name = 'Name required'; hasError = true; }
+        if (phone.length < 8) { newErrors.phone = 'Valid phone needed'; hasError = true; }
+
+        // 🚀 NEW: Strict JavaScript Validation for Past Dates/Times
+        if (pickupDate && pickupTime) {
+            const selectedDateTime = new Date(`${pickupDate}T${pickupTime}`);
+            const now = new Date();
+            
+            if (selectedDateTime < now) {
+                newErrors.time = 'Cannot book past time';
+                hasError = true;
+            }
         }
 
-        if (hasError) return;
+        if (hasError) {
+            setErrors(newErrors);
+            return;
+        }
 
         setIsLoading(true);
         try {
@@ -89,10 +133,10 @@ export default function CheckoutModal(props: CheckoutModalProps) {
             if (data.success) { 
                 setStep('otp');
             } else {
-                setErrors(prev => ({ ...prev, general: data.message || "Failed to send OTP. Please check your number." }));
+                setErrors(prev => ({ ...prev, general: data.message || "Failed to send OTP." }));
             }
         } catch (error) {
-            setErrors(prev => ({ ...prev, general: "Network error. Could not connect to server." }));
+            setErrors(prev => ({ ...prev, general: "Network error. Could not connect." }));
         } finally {
             setIsLoading(false);
         }
@@ -100,9 +144,8 @@ export default function CheckoutModal(props: CheckoutModalProps) {
 
     const handleVerifyAndBook = async () => {
         setErrors(prev => ({ ...prev, otp: '', general: '' }));
-
         if (otp.length != 4) {
-            setErrors(prev => ({ ...prev, otp: 'Please enter the 4-digit OTP' }));
+            setErrors(prev => ({ ...prev, otp: 'Enter 4-digit OTP' }));
             return;
         }
         setIsLoading(true);
@@ -118,7 +161,8 @@ export default function CheckoutModal(props: CheckoutModalProps) {
             name: name,
             pickup: props.pickup,
             drop: props.drop,
-            bookingDate: props.bookingDate || new Date().toISOString(),
+            bookingDate: formatDisplayDate(pickupDate),
+            pickupTime: formatDisplayTime(pickupTime),
             vehicleId: props.vehicleId,
             price: props.finalPrice,
             duration: props.duration,
@@ -143,7 +187,7 @@ export default function CheckoutModal(props: CheckoutModalProps) {
                 setErrors(prev => ({ ...prev, otp: data.message || "Invalid OTP entered." }));
             }
         } catch (error) {
-            setErrors(prev => ({ ...prev, general: "Network error. Could not process booking." }));
+            setErrors(prev => ({ ...prev, general: "Network error processing booking." }));
         } finally {
             setIsLoading(false);
         }
@@ -159,12 +203,6 @@ export default function CheckoutModal(props: CheckoutModalProps) {
             <View style={styles.overlay}>
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.keyboardAvoidWrapper}>
                     <View style={styles.modalContent}>
-                        
-                        {step !== 'success' && (
-                            <View style={styles.dragHandleContainer}>
-                                <View style={styles.dragHandle} />
-                            </View>
-                        )}
                         
                         {step !== 'success' && (
                             <View style={styles.header}>
@@ -186,21 +224,6 @@ export default function CheckoutModal(props: CheckoutModalProps) {
                         ) : (
                             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                                 
-                                <View style={styles.receiptCard}>
-                                    <View style={styles.receiptRow}>
-                                        <Text style={styles.receiptLabel}>Vehicle</Text>
-                                        <Text style={styles.receiptValue}>{props.vehicleId}</Text>
-                                    </View>
-                                    <View style={styles.receiptRow}>
-                                        <Text style={styles.receiptLabel}>Route</Text>
-                                        <Text style={styles.receiptValue} numberOfLines={1}>{getTripRouteString()}</Text>
-                                    </View>
-                                    <View style={[styles.receiptRow, styles.receiptTotalRow]}>
-                                        <Text style={styles.receiptTotalLabel}>Total Amount</Text>
-                                        <Text style={styles.receiptTotalValue}>₹{props.finalPrice.toLocaleString()}</Text>
-                                    </View>
-                                </View>
-
                                 {errors.general ? (
                                     <View style={styles.generalErrorBox}>
                                         <Text style={styles.generalErrorText}>⚠️ {errors.general}</Text>
@@ -209,14 +232,69 @@ export default function CheckoutModal(props: CheckoutModalProps) {
 
                                 {step === 'details' ? (
                                     <View style={styles.formContainer}>
+                                        
+                                        <View style={styles.row}>
+                                            <View style={[styles.inputGroup, { flex: 1 }]}>
+                                                <Text style={styles.label}>Pickup Date</Text>
+                                                <View style={[styles.input, { padding: 0, position: 'relative', overflow: 'hidden' }, isDateFocused && styles.inputFocused, errors.date ? styles.inputError : null]}>
+                                                    
+                                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, height: 52 }}>
+                                                        <Text style={[styles.dateText, !pickupDate && styles.placeholderText]}>{formatDisplayDate(pickupDate)}</Text>
+                                                        <Text style={styles.dateTimeIcon}>📅</Text>
+                                                    </View>
+
+                                                    {Platform.OS === 'web' && createElement('input', {
+                                                        type: 'date',
+                                                        value: pickupDate,
+                                                        min: getTodayDateString(), // 🚀 NEW: Blocks past dates in calendar picker
+                                                        onChange: (e: any) => {
+                                                            setPickupDate(e.target.value);
+                                                            // If they change the date to today and their selected time is now in the past, clear the time
+                                                            if (e.target.value === getTodayDateString() && pickupTime && pickupTime < getCurrentTimeString()) {
+                                                                setPickupTime('');
+                                                            }
+                                                            if (errors.date) setErrors(prev => ({ ...prev, date: '' }));
+                                                        },
+                                                        onFocus: () => setIsDateFocused(true),
+                                                        onBlur: () => setIsDateFocused(false),
+                                                        onClick: (e: any) => { try { if (e.target.showPicker) e.target.showPicker(); } catch (err) {} },
+                                                        style: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }
+                                                    })}
+                                                </View>
+                                                {errors.date ? <Text style={styles.errorText}>{errors.date}</Text> : null}
+                                            </View>
+                                            
+                                            <View style={[styles.inputGroup, { flex: 1 }]}>
+                                                <Text style={styles.label}>Pickup Time</Text>
+                                                <View style={[styles.input, { padding: 0, position: 'relative', overflow: 'hidden' }, isTimeFocused && styles.inputFocused, errors.time ? styles.inputError : null]}>
+                                                    
+                                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, height: 52 }}>
+                                                        <Text style={[styles.dateText, !pickupTime && styles.placeholderText]}>{formatDisplayTime(pickupTime)}</Text>
+                                                        <Text style={styles.dateTimeIcon}>⏰</Text>
+                                                    </View>
+
+                                                    {Platform.OS === 'web' && createElement('input', {
+                                                        type: 'time',
+                                                        value: pickupTime,
+                                                        min: pickupDate === getTodayDateString() ? getCurrentTimeString() : undefined, // 🚀 NEW: Blocks past time if date is today
+                                                        onChange: (e: any) => {
+                                                            setPickupTime(e.target.value);
+                                                            if (errors.time) setErrors(prev => ({ ...prev, time: '' }));
+                                                        },
+                                                        onFocus: () => setIsTimeFocused(true),
+                                                        onBlur: () => setIsTimeFocused(false),
+                                                        onClick: (e: any) => { try { if (e.target.showPicker) e.target.showPicker(); } catch (err) {} },
+                                                        style: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }
+                                                    })}
+                                                </View>
+                                                {errors.time ? <Text style={styles.errorText}>{errors.time}</Text> : null}
+                                            </View>
+                                        </View>
+
                                         <View style={styles.inputGroup}>
                                             <Text style={styles.label}>Passenger Name</Text>
                                             <TextInput 
-                                                style={[
-                                                    styles.input, 
-                                                    isNameFocused && styles.inputFocused,
-                                                    errors.name ? styles.inputError : null
-                                                ]} 
+                                                style={[styles.input, isNameFocused && styles.inputFocused, errors.name ? styles.inputError : null]} 
                                                 placeholder="e.g. Rahul Sharma" 
                                                 placeholderTextColor="#94A3B8"
                                                 value={name} 
@@ -232,11 +310,7 @@ export default function CheckoutModal(props: CheckoutModalProps) {
                                         
                                         <View style={styles.inputGroup}>
                                             <Text style={styles.label}>WhatsApp Number <Text style={styles.asterisk}>*</Text></Text>
-                                            <View style={[
-                                                styles.phoneInputContainer, 
-                                                isPhoneFocused && styles.inputFocused,
-                                                errors.phone ? styles.inputError : null
-                                            ]}>
+                                            <View style={[styles.phoneInputContainer, isPhoneFocused && styles.inputFocused, errors.phone ? styles.inputError : null]}>
                                                 <Pressable style={styles.countryCodeBadge} onPress={() => setShowCountryPicker(true)}>
                                                     <Text style={styles.countryCodeText}>{countryCode}</Text>
                                                     <Text style={styles.dropdownArrow}>▼</Text>
@@ -266,27 +340,19 @@ export default function CheckoutModal(props: CheckoutModalProps) {
                                 ) : (
                                     <View style={styles.formContainer}>
                                         
-                                        {/* 🚀 UPDATED: Detailed Trip Summary instead of Name/Phone */}
                                         <View style={styles.reviewPanelCard}>
                                             <View style={styles.reviewHeaderRow}>
                                                 <Text style={styles.reviewTitleText}>Final Trip Summary</Text>
-                                                <Pressable onPress={props.onClose}>
+                                                <Pressable onPress={() => setStep('details')}>
                                                     <Text style={styles.reviewEditText}>Edit Search</Text>
                                                 </Pressable>
                                             </View>
                                             <View style={styles.reviewContentGrid}>
-                                                {props.bookingDate && (
-                                                    <Text style={styles.reviewDataText} numberOfLines={1}>📅 Date: <Text style={styles.darkText}>{props.bookingDate}</Text></Text>
-                                                )}
+                                                <Text style={styles.reviewDataText} numberOfLines={1}>📅 Date: <Text style={styles.darkText}>{formatDisplayDate(pickupDate)}</Text></Text>
+                                                <Text style={styles.reviewDataText} numberOfLines={1}>⏰ Time: <Text style={styles.darkText}>{formatDisplayTime(pickupTime)}</Text></Text>
                                                 <Text style={styles.reviewDataText} numberOfLines={1}>📍 Pickup: <Text style={styles.darkText}>{props.pickup}</Text></Text>
                                                 {props.tripType !== 'local' && (
                                                     <Text style={styles.reviewDataText} numberOfLines={1}>🏁 Drop: <Text style={styles.darkText}>{props.drop}</Text></Text>
-                                                )}
-                                                {props.tripType === 'round-trip' && props.duration && (
-                                                    <Text style={styles.reviewDataText}>⏳ Duration: <Text style={styles.darkText}>{props.duration} {props.duration === 1 ? 'Day' : 'Days'}</Text></Text>
-                                                )}
-                                                {props.tripType === 'local' && props.packageType && (
-                                                    <Text style={styles.reviewDataText}>📦 Package: <Text style={styles.darkText}>{String(props.packageType).replace('-', ' / ')}</Text></Text>
                                                 )}
                                             </View>
                                         </View>
@@ -298,10 +364,7 @@ export default function CheckoutModal(props: CheckoutModalProps) {
                                         <Text style={styles.subLabel}>Enter the security verification pin sent to your phone</Text>
                                         
                                         <TextInput 
-                                            style={[
-                                                styles.otpInputBox,
-                                                errors.otp ? styles.inputError : null
-                                            ]} 
+                                            style={[styles.otpInputBox, errors.otp ? styles.inputError : null]} 
                                             placeholder="• • • •" 
                                             placeholderTextColor="#CBD5E1"
                                             keyboardType="number-pad"
@@ -319,10 +382,7 @@ export default function CheckoutModal(props: CheckoutModalProps) {
                                             {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.primaryBtnText}>Confirm Booking</Text>}
                                         </Pressable>
                                         
-                                        <Pressable style={styles.secondaryBtn} onPress={() => {
-                                            setStep('details');
-                                            setOtp('');
-                                        }} disabled={isLoading}>
+                                        <Pressable style={styles.secondaryBtn} onPress={() => { setStep('details'); setOtp(''); }} disabled={isLoading}>
                                             <Text style={styles.secondaryBtnText}>Incorrect number? Go back</Text>
                                         </Pressable>
                                     </View>
@@ -343,10 +403,7 @@ export default function CheckoutModal(props: CheckoutModalProps) {
                             renderItem={({ item }) => (
                                 <Pressable 
                                     style={styles.pickerItem} 
-                                    onPress={() => {
-                                        setCountryCode(item.code);
-                                        setShowCountryPicker(false);
-                                    }}
+                                    onPress={() => { setCountryCode(item.code); setShowCountryPicker(false); }}
                                 >
                                     <View style={styles.pickerItemLeft}>
                                         <Text style={styles.pickerFlag}>{item.flag}</Text>
@@ -366,24 +423,12 @@ export default function CheckoutModal(props: CheckoutModalProps) {
 const styles = StyleSheet.create({
     overlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.75)', justifyContent: 'flex-end' },
     keyboardAvoidWrapper: { flex: 1, justifyContent: 'flex-end' },
-    modalContent: { 
-        backgroundColor: '#FFFFFF', 
-        borderTopLeftRadius: 28, 
-        borderTopRightRadius: 28, 
-        paddingHorizontal: 24,
-        paddingBottom: Platform.OS === 'ios' ? 50 : 30,
-        maxHeight: '92%'
-    },
+    modalContent: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 50 : 30, maxHeight: '92%' },
     scrollContent: { paddingBottom: 20 },
-    
-    dragHandleContainer: { alignItems: 'center', paddingTop: 12, paddingBottom: 16 },
-    dragHandle: { width: 40, height: 5, backgroundColor: '#E2E8F0', borderRadius: 10 },
-    
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, marginTop: 12 },
     title: { fontSize: 22, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
     closeBtnArea: { padding: 8, backgroundColor: '#F1F5F9', borderRadius: 20 },
     closeBtnText: { fontSize: 16, color: '#64748B', fontWeight: '800', lineHeight: 18 },
-    
     receiptCard: { backgroundColor: '#F8FAFC', borderRadius: 16, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: '#E2E8F0', borderStyle: 'dashed' },
     receiptRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
     receiptLabel: { fontSize: 14, color: '#64748B', fontWeight: '500' },
@@ -391,7 +436,6 @@ const styles = StyleSheet.create({
     receiptTotalRow: { marginTop: 8, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#E2E8F0', marginBottom: 0 },
     receiptTotalLabel: { fontSize: 16, color: '#0F172A', fontWeight: '700' },
     receiptTotalValue: { fontSize: 20, color: '#2563EB', fontWeight: '900' },
-    
     reviewPanelCard: { backgroundColor: '#F1F5F9', borderRadius: 14, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: '#E2E8F0' },
     reviewHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#CBD5E1' },
     reviewTitleText: { fontSize: 14, fontWeight: '800', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.5 },
@@ -399,39 +443,34 @@ const styles = StyleSheet.create({
     reviewContentGrid: { gap: 6 },
     reviewDataText: { fontSize: 14, color: '#64748B', fontWeight: '500' },
     darkText: { color: '#0F172A', fontWeight: '700' },
-
     inputError: { borderColor: '#EF4444', backgroundColor: '#FEF2F2' },
     errorText: { color: '#EF4444', fontSize: 13, fontWeight: '600', marginTop: 4, marginLeft: 4 },
     generalErrorBox: { backgroundColor: '#FEF2F2', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#FECACA', marginBottom: 16 },
     generalErrorText: { color: '#B91C1C', fontSize: 14, fontWeight: '600', textAlign: 'center' },
-
     formContainer: { gap: 4 },
+    row: { flexDirection: 'row', gap: 12 }, 
     inputGroup: { marginBottom: 16 },
     label: { fontSize: 14, fontWeight: '600', color: '#334155', marginBottom: 8 },
     asterisk: { color: '#EF4444' },
-    
-    input: { backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12, padding: 16, fontSize: 16, color: '#0F172A' },
+    input: { backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 16, fontSize: 16, color: '#0F172A', minHeight: 52, justifyContent: 'center' },
+    dateText: { color: '#0F172A', fontSize: 16 },
+    placeholderText: { color: '#94A3B8' },
+    dateTimeIcon: { fontSize: 16 },
     inputFocused: { borderColor: '#2563EB', backgroundColor: '#F0F9FF' },
-    
     phoneInputContainer: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12, overflow: 'hidden' },
     countryCodeBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', paddingHorizontal: 16, borderRightWidth: 1.5, borderRightColor: '#E2E8F0' },
     countryCodeText: { fontSize: 16, fontWeight: '700', color: '#475569' },
     dropdownArrow: { fontSize: 10, color: '#64748B', marginLeft: 6, marginTop: 2 },
     phoneInput: { flex: 1, padding: 16, fontSize: 16, color: '#0F172A', fontWeight: '600', letterSpacing: 1 },
-    
     otpIconContainer: { alignSelf: 'center', backgroundColor: '#EFF6FF', width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
     otpIcon: { fontSize: 24 },
     otpHeading: { fontSize: 20, fontWeight: '800', color: '#0F172A', textAlign: 'center', marginBottom: 4 },
     subLabel: { fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 16, paddingHorizontal: 10 },
-    boldText: { color: '#0F172A', fontWeight: '700' },
     otpInputBox: { backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 16, paddingVertical: 16, fontSize: 32, color: '#0F172A', letterSpacing: 16, fontWeight: '900', textAlign: 'center', marginBottom: 20 },
-    
     primaryBtn: { backgroundColor: '#0F172A', paddingVertical: 18, borderRadius: 12, alignItems: 'center' },
     primaryBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16, letterSpacing: 0.5 },
-    
     secondaryBtn: { paddingVertical: 12, alignItems: 'center', marginTop: 4 },
     secondaryBtnText: { color: '#64748B', fontWeight: '600', fontSize: 14 },
-
     pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
     pickerContainer: { backgroundColor: '#FFFFFF', width: '80%', borderRadius: 16, padding: 20, maxHeight: '60%' },
     pickerTitle: { fontSize: 18, fontWeight: '700', color: '#0F172A', marginBottom: 16, textAlign: 'center' },
@@ -440,10 +479,9 @@ const styles = StyleSheet.create({
     pickerFlag: { fontSize: 18, marginRight: 12 },
     pickerItemName: { fontSize: 16, color: '#334155', fontWeight: '500' },
     pickerItemCode: { fontSize: 16, color: '#0F172A', fontWeight: '700' },
-
     successContainer: { paddingVertical: 40, alignItems: 'center', justifyContent: 'center' },
-    successCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#10B981', alignItems: 'center', justifyContent: 'center', marginBottom: 24, shadowColor: '#10B981', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 },
-    successTickIcon: { color: '#FFFFFF', fontSize: 44, fontWeight: 'bold', lineHeight: 48 },
-    successHeading: { fontSize: 24, fontWeight: '900', color: '#0F172A', marginBottom: 12, letterSpacing: -0.3 },
+    successCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#10B981', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+    successTickIcon: { color: '#FFFFFF', fontSize: 44, fontWeight: 'bold' },
+    successHeading: { fontSize: 24, fontWeight: '900', color: '#0F172A', marginBottom: 12 },
     successSubtext: { fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 22, paddingHorizontal: 16 }
 });
