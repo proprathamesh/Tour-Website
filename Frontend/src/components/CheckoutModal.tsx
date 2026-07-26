@@ -12,6 +12,7 @@ interface CheckoutModalProps {
     duration?: number;
     packageType?: string;
     extraKmRate?: number;
+    extraHrRate?: number;
 }
 
 const countryList = [
@@ -170,6 +171,7 @@ export default function CheckoutModal(props: CheckoutModalProps) {
             packageType: props.packageType,
             baseFare: props.finalPrice, 
             extraKmRate: props.extraKmRate,
+            extraHrRate: props.extraHrRate,
             kmLimit: props.duration ? props.duration * 300 : undefined 
         };
 

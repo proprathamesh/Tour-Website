@@ -1,62 +1,62 @@
 {
   "pune-to-mumbai": {
     "routeDetails": { "origin": "Pune", "destination": "Mumbai Airport", "distanceKm": 150, "estimatedTimeHours": 3.5 },
-    "vehicles": [
-      { "id": "hatchback", "name": "Mini/Hatchback", "models": "Wagonr", "seats": "4+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 2900 },
-      { "id": "sedan", "name": "Sedan", "models": "Dzire, Etios, Aura", "seats": "4+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 3000 },
-      { "id": "suv", "name": "Standard SUV", "models": "Ertiga, Rumion", "seats": "6+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 3500 },
-      { "id": "comfort-suv", "name": "Comfort SUV", "models": "Carens, Clavis", "seats": "6+1", "fuel": "Diesel", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 4200 },
-      { "id": "premium-suv", "name": "Executive SUV", "models": "Innova Crysta", "seats": "6+1/7+1", "fuel": "Diesel", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 5000 }
+    "oneWayPricing": [
+      { "vehicleId": "v1_hatchback", "oneWayPackage": 2900 },
+      { "vehicleId": "v2_sedan", "oneWayPackage": 3000 },
+      { "vehicleId": "v3_suv", "oneWayPackage": 3500 },
+      { "vehicleId": "v4_comfort_suv", "oneWayPackage": 4200 },
+      { "vehicleId": "v5_premium_suv", "oneWayPackage": 5000 }
     ]
   },
   "mumbai-to-pune": {
     "routeDetails": { "origin": "Mumbai Airport", "destination": "Pune", "distanceKm": 150, "estimatedTimeHours": 3.5 },
-    "vehicles": [
-      { "id": "hatchback", "name": "Mini/Hatchback", "models": "Wagonr", "seats": "4+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 2900 },
-      { "id": "sedan", "name": "Sedan", "models": "Dzire, Etios, Aura", "seats": "4+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 3000 },
-      { "id": "suv", "name": "Standard SUV", "models": "Ertiga, Rumion", "seats": "6+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 3500 },
-      { "id": "comfort-suv", "name": "Comfort SUV", "models": "Carens, Clavis", "seats": "6+1", "fuel": "Diesel", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 4200 },
-      { "id": "premium-suv", "name": "Executive SUV", "models": "Innova Crysta", "seats": "6+1/7+1", "fuel": "Diesel", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 5000 }
+    "oneWayPricing": [
+      { "vehicleId": "v1_hatchback", "oneWayPackage": 2900 },
+      { "vehicleId": "v2_sedan", "oneWayPackage": 3000 },
+      { "vehicleId": "v3_suv", "oneWayPackage": 3500 },
+      { "vehicleId": "v4_comfort_suv", "oneWayPackage": 4200 },
+      { "vehicleId": "v5_premium_suv", "oneWayPackage": 5000 }
     ]
   },
   "pune-to-nashik": {
     "routeDetails": { "origin": "Pune", "destination": "Nashik", "distanceKm": 215, "estimatedTimeHours": 5 },
-    "vehicles": [
-      { "id": "hatchback", "name": "Mini/Hatchback", "models": "Wagonr", "seats": "4+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 3200 },
-      { "id": "sedan", "name": "Sedan", "models": "Dzire, Etios, Aura", "seats": "4+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 4000 },
-      { "id": "suv", "name": "Standard SUV", "models": "Ertiga, Rumion", "seats": "6+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 4500 },
-      { "id": "comfort-suv", "name": "Comfort SUV", "models": "Carens, Clavis", "seats": "6+1", "fuel": "Diesel", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 6000 },
-      { "id": "premium-suv", "name": "Executive SUV", "models": "Innova Crysta", "seats": "6+1/7+1", "fuel": "Diesel", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 7000 }
+    "oneWayPricing": [
+      { "vehicleId": "v1_hatchback", "oneWayPackage": 3200 },
+      { "vehicleId": "v2_sedan", "oneWayPackage": 4000 },
+      { "vehicleId": "v3_suv", "oneWayPackage": 4500 },
+      { "vehicleId": "v4_comfort_suv", "oneWayPackage": 6000 },
+      { "vehicleId": "v5_premium_suv", "oneWayPackage": 7000 }
     ]
   },
   "nashik-to-pune": {
     "routeDetails": { "origin": "Nashik", "destination": "Pune", "distanceKm": 215, "estimatedTimeHours": 5 },
-    "vehicles": [
-      { "id": "hatchback", "name": "Mini/Hatchback", "models": "Wagonr", "seats": "4+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 3200 },
-      { "id": "sedan", "name": "Sedan", "models": "Dzire, Etios, Aura", "seats": "4+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 4000 },
-      { "id": "suv", "name": "Standard SUV", "models": "Ertiga, Rumion", "seats": "6+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 4500 },
-      { "id": "comfort-suv", "name": "Comfort SUV", "models": "Carens, Clavis", "seats": "6+1", "fuel": "Diesel", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 6000 },
-      { "id": "premium-suv", "name": "Executive SUV", "models": "Innova Crysta", "seats": "6+1/7+1", "fuel": "Diesel", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 7000 }
+    "oneWayPricing": [
+      { "vehicleId": "v1_hatchback", "oneWayPackage": 3200 },
+      { "vehicleId": "v2_sedan", "oneWayPackage": 4000 },
+      { "vehicleId": "v3_suv", "oneWayPackage": 4500 },
+      { "vehicleId": "v4_comfort_suv", "oneWayPackage": 6000 },
+      { "vehicleId": "v5_premium_suv", "oneWayPackage": 7000 }
     ]
   },
   "mumbai-to-nashik": {
     "routeDetails": { "origin": "Mumbai Airport", "destination": "Nashik", "distanceKm": 170, "estimatedTimeHours": 4 },
-    "vehicles": [
-      { "id": "hatchback", "name": "Mini/Hatchback", "models": "Wagonr", "seats": "4+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 2900 },
-      { "id": "sedan", "name": "Sedan", "models": "Dzire, Etios, Aura", "seats": "4+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 3000 },
-      { "id": "suv", "name": "Standard SUV", "models": "Ertiga, Rumion", "seats": "6+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 3500 },
-      { "id": "comfort-suv", "name": "Comfort SUV", "models": "Carens, Clavis", "seats": "6+1", "fuel": "Diesel", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 4200 },
-      { "id": "premium-suv", "name": "Executive SUV", "models": "Innova Crysta", "seats": "6+1/7+1", "fuel": "Diesel", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 5000 }
+    "oneWayPricing": [
+      { "vehicleId": "v1_hatchback", "oneWayPackage": 2900 },
+      { "vehicleId": "v2_sedan", "oneWayPackage": 3000 },
+      { "vehicleId": "v3_suv", "oneWayPackage": 3500 },
+      { "vehicleId": "v4_comfort_suv", "oneWayPackage": 4200 },
+      { "vehicleId": "v5_premium_suv", "oneWayPackage": 5000 }
     ]
   },
   "nashik-to-mumbai": {
     "routeDetails": { "origin": "Nashik", "destination": "Mumbai Airport", "distanceKm": 170, "estimatedTimeHours": 4 },
-    "vehicles": [
-      { "id": "hatchback", "name": "Mini/Hatchback", "models": "Wagonr", "seats": "4+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 2900 },
-      { "id": "sedan", "name": "Sedan", "models": "Dzire, Etios, Aura", "seats": "4+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 3000 },
-      { "id": "suv", "name": "Standard SUV", "models": "Ertiga, Rumion", "seats": "6+1", "fuel": "CNG", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 3500 },
-      { "id": "comfort-suv", "name": "Comfort SUV", "models": "Carens, Clavis", "seats": "6+1", "fuel": "Diesel", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 4200 },
-      { "id": "premium-suv", "name": "Executive SUV", "models": "Innova Crysta", "seats": "6+1/7+1", "fuel": "Diesel", "imageUrl": "https://cdn-icons-png.flaticon.com/512/3204/3204121.png", "oneWayPackage": 5000 }
+    "oneWayPricing": [
+      { "vehicleId": "v1_hatchback", "oneWayPackage": 2900 },
+      { "vehicleId": "v2_sedan", "oneWayPackage": 3000 },
+      { "vehicleId": "v3_suv", "oneWayPackage": 3500 },
+      { "vehicleId": "v4_comfort_suv", "oneWayPackage": 4200 },
+      { "vehicleId": "v5_premium_suv", "oneWayPackage": 5000 }
     ]
   }
 }

@@ -136,20 +136,6 @@ export default function HomeScreen() {
             </View>
           )}
 
-          {/* 🚀 NEW: Start Date ONLY for Round-Trip */}
-          {tripType === 'round-trip' && (
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Start Date</Text>
-              {/* @ts-ignore */}
-              <input 
-                type="date" 
-                min={new Date().toISOString().split('T')[0]} 
-                value={startDate} 
-                onChange={(e: any) => setStartDate(e.target.value)} 
-                style={webSelectStyle} 
-              />
-            </View>
-          )}
 
           {/* Show Packages ONLY for Local Rental */}
           {tripType === 'local' && (
