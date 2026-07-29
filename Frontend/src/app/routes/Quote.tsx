@@ -243,6 +243,7 @@ export default function QuoteScreen() {
                     }
                     duration={durationDays}
                     packageType={localPackage as string}
+                    extraHrRate={selectedVehicle.pricing.local.packages.find((p: any) => p.packageId === localPackage)?.extraHrRate}
                     extraKmRate={
                         tripType === 'round-trip' ? selectedVehicle.pricing.roundTrip.extraKmRate :
                             tripType === 'local' ? selectedVehicle.pricing.local.packages.find((p: any) => p.packageId === localPackage)?.extraKmRate : 0
